@@ -4,7 +4,7 @@ from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
 from matplotlib import style
 
-iterations=2000
+iterations=1000
 alpha=1
 
 def sig(z):
@@ -44,7 +44,7 @@ x_train, x_test, y_train, y_test, og_train, og_test = train_test_split(x, y, og,
 style.use('ggplot')
 
 predict=ny.zeros((x_train.shape[0], 4))
-theta_t_series = ny.zeros((feat, 4))
+theta_t_series = ny.zeros((4, x_train.shape[1], 1))
 
 for j in range(1, 5):
     for i in range(0, y_train.shape[0]):
@@ -78,42 +78,54 @@ for j in range(1, 5):
     for i in range(0, m):
         predict[i][j-1]=hypo[i]
 
-print(predict)
-print(predict.shape)
-
 n=predict.shape[0]
 final_answer=ny.zeros((n, 1))
 
 for i in range(0, n):
-    temp=max(predict[i][0], max(predict[i][1], predict[i][2]))
+    temp=max(predict[i][0], max(predict[i][1], max(predict[i][2], predict[i][3])))
     if (temp==predict[i][0]):
         final_answer[i]=1;
     elif (temp==predict[i][1]):
         final_answer[i]=2;
-    else:
+    elif (temp==predict[i][2]):
         final_answer[i]=3
-
-print(final_answer)
+    elif (temp == predict[i][3]):
+        final_answer[i] = 4
 
 acc = 0
 for i in range(0, m):
     if (final_answer[i] == og_train[i]):
         acc = acc + 1
+
+# Model Accuray is affected due to the use of dummy(not well built) dataset
+print("Train Accuracy:")
 print(acc / m)
 
 p = x_test.shape[0]
 acc_test = 0
-predict1 = ny.zeros((n, 4))
+predict1 = ny.zeros((p, 4))
+final_answer1 = ny.zeros((p, 1))
 
-for j in range (1, 5):
+for j in range (0, 4):
     hypo1 = hyp(theta_t_series[j], x_test)
-    for i in range(0, n):
-        if (hypo1[i] > 0.5):
-            predict1[i] = 1
-        else:
-            predict1[i] = 0
+    for i in range(0, p):
+        predict1[i][j] = hypo1[i]
 
-for i in range(0, n):
-    if (predict1[i] == y_test[i]):
+for i in range(0, p):
+    temp=max(predict1[i][0], max(predict1[i][1], max(predict1[i][2], predict1[i][3])))
+    if (temp==predict[i][0]):
+        final_answer1[i]=1;
+    elif (temp==predict[i][1]):
+        final_answer1[i]=2;
+    elif (temp==predict[i][2]):
+        final_answer1[i]=3
+    elif (temp == predict[i][3]):
+        final_answer1[i] = 4
+
+for i in range(0, p):
+    if (final_answer1[i] == og_test[i]):
         acc_test = acc_test + 1
-print(acc_test / n)
+
+# Model Accuray is affected due to the use of dummy(not well built) dataset
+print("Test Accuracy:")
+print(acc_test / p)
